@@ -16,7 +16,7 @@
 : ${ENABLE_DHCP:='Y'}
 : ${DISABLE_VGA:='N'}
 
-: ${KVM_BLK_OPTS:="-drive if=virtio,file=/image/image"}
+: ${KVM_BLK_OPTS:="-drive if=virtio,file=/image/image,index=0"}
 
 : ${KVM_OPTS:="\
   -nodefaults \
@@ -368,6 +368,6 @@ if [[ "$ENABLE_DHCP" == 1 ]]; then
   $DNSMASQ $DNSMASQ_OPTS
 fi
 
-log "INFO" "Launching qemu-kvm"
-log "DEBUG" "Launching $LAUNCHER $KVM_BLK_OPTS $KVM_OPTS $KVM_VIDEO_OPTS $KVM_CPU_OPTS $KVM_ARGS $@ $KVM_NET_OPTS"
+# log "INFO" "Launching qemu-kvm"
+log "INFO" "Launching $LAUNCHER $KVM_BLK_OPTS $KVM_OPTS $KVM_VIDEO_OPTS $KVM_CPU_OPTS $KVM_ARGS $@ $KVM_NET_OPTS"
 eval exec $LAUNCHER $KVM_BLK_OPTS $KVM_OPTS $KVM_VIDEO_OPTS $KVM_CPU_OPTS "$@" $KVM_NET_OPTS
