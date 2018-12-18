@@ -128,6 +128,51 @@ This container uses macvlan devices to setup network connectivity. If an old ker
   ```
   This is probed to be needed when using RancherOS.
 
+# [[--WIP--]] jdef hacking
+
+```
+# -- build a docker image from this repo:
+
+$ docker build -t dkvm .
+
+# -- then move to a scratch space and do the remaining work there:
+
+$ mkdir /tmp/foo && cd /tmp/foo
+$ wget http://cloud-images.ubuntu.com/xenial/current/xenial-server-cloudimg-amd64-disk1.img
+
+# -- create a "diff" disk to keep the base image pristine, and a seed image w/ login info:
+$ qemu-img create -f qcow2 -b xenial-server-cloudimg-amd64-disk1.img diff1.img
+
+$ cat > my-user-data <<EOF
+#cloud-config
+password: passw0rd
+chpasswd: { expire: False }
+ssh_pwauth: True
+EOF
+
+# -- create a "seed" image w/ the login info from above:
+$ cloud-localds my-seed.img my-user-data
+
+# -- launch the VM in a docker container:
+$ base_image=xenial-server-cloudimg-amd64-disk1.img
+$ seed_image=my-seed.img
+$ docker run                                   \
+      --name kvm                               \
+      -td                                      \
+      --privileged                             \
+      -v $(pwd)/diff1.img:/image/image         \
+      -v $(pwd)/$base_image:/image/$base_image \
+      -v $(pwd)/$seed_image:/image/seed        \
+      -e AUTO_ATTACH=yes                       \
+      dkvm -drive if=virtio,file=/image/seed,index=1
+
+# -- watch your VM boot up:
+$ docker logs -f kvm
+
+# -- observe the IP address that the instance is using, then ssh into it:
+$ ssh ubuntu@${WHATEVER_THE_OBSERVED_IP_ADDRESSES_WAS}
+```
+
 # License
 Licensed to the Apache Software Foundation (ASF) under one or more contributor license agreements. See the NOTICE file distributed with this work for additional information regarding copyright ownership. The ASF licenses this file to you under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 
